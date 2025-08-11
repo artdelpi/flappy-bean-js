@@ -3,7 +3,7 @@ const GAME_BOARD = {
     HEIGHT: 515,
     WIDTH: 290
 }
-const PIPE_SPEED = -2; // 2px per frame update
+const PIPE_SPEED = -3; // 2px per frame update
 const GRAVITY = 0.3; // 0.5px per frame update
 
 const UPPER_PIPE_IMG = new Image();
@@ -20,10 +20,11 @@ let gameBoard;
 let context;
 let beanImg;
 let bean = {
-    y: GAME_BOARD.HEIGHT / 2, // middle of the y-axis
     x: 35, // immutable
+    y: GAME_BOARD.HEIGHT / 2, // middle of the y-axis
+    width: 35,
     height: 35,
-    width: 35
+    img_state: 1 // bean .png image (1, 2 or 3)
 }
 let pipeArr = [];
 let beanSpeed = 0;
@@ -35,28 +36,19 @@ window.onload = function() {
     gameBoard.width = GAME_BOARD.WIDTH;
     gameBoard.height = GAME_BOARD.HEIGHT;
     context = gameBoard.getContext("2d");
-
-    beanImg = new Image();
-    beanImg.src = "./assets/img/fbs-01.png";
-    beanImg.onload = function() {
-        context.drawImage(beanImg, 
-                          bean.x, 
-                          bean.y, 
-                          bean.width, 
-                          bean.height);
-    }
-
     document.addEventListener("keydown", moveBean);
     
     requestAnimationFrame(update);
-    setInterval(spawnPipe, 1500); // +2 pipes every 1.5 seconds
+    setInterval(spawnPipe, 1000); // +2 pipes every second
+
+    beanImg = new Image();
+    setInterval(animateBean, 300); // animates bean image
 }
+
 
 /* MAIN GAME LOOP */
 function update() {
-    if (gameOver) {
-        return;
-    } else {
+    if (!gameOver) {
         requestAnimationFrame(update);
         context.clearRect(0, 0, 
                           GAME_BOARD.WIDTH, GAME_BOARD.HEIGHT);
@@ -90,6 +82,7 @@ function update() {
     }
 }
 
+
 /* UTILS */
 function aabb(a, b) {
     return (a.y < b.y + b.height &&
@@ -99,14 +92,17 @@ function aabb(a, b) {
     );
 }
 
+
 function moveBean(e) {
     if (e.code == "Space") {
         beanSpeed = -5; // resets speed to go 5px higher
     }
 }
 
+
 function spawnPipe() {
     let randomPipeY = -PIPE_HEIGHT + PIPE_HEIGHT/3 + Math.random()*PIPE_HEIGHT/2;
+    let defaultPipeDistance = 100;
 
     let upperPipe = {
         img: UPPER_PIPE_IMG,
@@ -119,11 +115,39 @@ function spawnPipe() {
     let lowerPipe = {
         img: LOWER_PIPE_IMG,
         x: GAME_BOARD.WIDTH,
-        y: PIPE_HEIGHT + randomPipeY + 90,
+        y: PIPE_HEIGHT + randomPipeY + defaultPipeDistance,
         height: PIPE_HEIGHT,
         width: PIPE_WIDTH
     }
 
     pipeArr.push(upperPipe);
     pipeArr.push(lowerPipe);
+}
+
+
+function animateBean() {
+    if (!gameOver) {
+        switch (bean.img_state) {
+            case 1:
+                beanImg.src = "./assets/img/fbs-02.png" // state 1 to 2
+                bean.img_state = 2;
+                break;
+            case 2:
+                beanImg.src = "./assets/img/fbs-03.png" // state 2 to 3
+                bean.img_state = 3;
+                break;
+            case 3:
+                beanImg.src = "./assets/img/fbs-01.png" // state 3 to 1
+                bean.img_state = 1;
+                break;
+        }
+    
+        beanImg.onload = function() {
+            context.drawImage(beanImg, 
+                              bean.x, 
+                              bean.y, 
+                              bean.width, 
+                              bean.height);
+        }
+    }
 }
