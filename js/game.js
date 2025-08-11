@@ -27,6 +27,7 @@ let bean = {
 }
 let pipeArr = [];
 let beanSpeed = 0;
+let gameOver = false;
 
 /* POST-LOAD ACTIONS */
 window.onload = function() {
@@ -53,33 +54,49 @@ window.onload = function() {
 
 /* MAIN GAME LOOP */
 function update() {
-    requestAnimationFrame(update);
-    context.clearRect(0, 0, 
-                      GAME_BOARD.WIDTH, GAME_BOARD.HEIGHT);
-
-    for (let i=0; i < pipeArr.length; i++) {
-        let auxPipe = pipeArr[i];
-        context.drawImage(auxPipe.img, 
-                          auxPipe.x, 
-                          auxPipe.y, 
-                          auxPipe.width, 
-                          auxPipe.height);
-        auxPipe.x += PIPE_SPEED;
+    if (gameOver) {
+        return;
+    } else {
+        requestAnimationFrame(update);
+        context.clearRect(0, 0, 
+                          GAME_BOARD.WIDTH, GAME_BOARD.HEIGHT);
+    
+        for (let i=0; i < pipeArr.length; i++) {
+            let auxPipe = pipeArr[i];
+            context.drawImage(auxPipe.img, 
+                              auxPipe.x, 
+                              auxPipe.y, 
+                              auxPipe.width, 
+                              auxPipe.height);
+            auxPipe.x += PIPE_SPEED;
+            
+            // End game if there's a collision with a pipe or the bean falls below the board
+            if (aabb(bean, auxPipe) || bean.y > GAME_BOARD.HEIGHT) {
+                gameOver = true;
+            }
+        }
+        
+        beanSpeed += GRAVITY;
+        bean.y += beanSpeed;
+        if (bean.y < 0) {
+            bean.y = 0;
+        }
+        context.drawImage(beanImg,
+                          bean.x,
+                          bean.y,
+                          bean.width,
+                          bean.height
+        );
     }
-
-    beanSpeed += GRAVITY;
-    bean.y += beanSpeed;
-    context.drawImage(beanImg,
-                      bean.x,
-                      bean.y,
-                      bean.width,
-                      bean.height
-    );
 }
 
 /* UTILS */
 function aabb(a, b) {
-    return
+    return (a.y < b.y + b.height &&
+        a.y + a.height > b.y &&
+        a.x < b.x + b.width &&
+        a.x + a.width > b.x
+    );
 }
 
 function moveBean(e) {
@@ -109,8 +126,4 @@ function spawnPipe() {
 
     pipeArr.push(upperPipe);
     pipeArr.push(lowerPipe);
-}
-
-function gameOver() {
-    return
 }
