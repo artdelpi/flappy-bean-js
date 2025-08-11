@@ -1,14 +1,14 @@
 /* CONSTANTS */
 const GAME = {
     WIDTH: 290,           // game board width
-    HEIGHT: 616,          // game board height
+    HEIGHT: 554,          // game board height
     GRAVITY: 0.30,        // px/frame 
     PIPE_SPEED: -3,       // px/frame
     PIPE_WIDTH: 49,
     PIPE_HEIGHT: 325,
     PIPE_GAP: 100,
     PIPE_SPAWN_MS: 1000,   
-    FLOOR_H: 111,
+    FLOOR_H: 69,
     FLOOR_W: 339,          
     BEAN: { W: 35, H: 35, X: 35 },
     BEAN_UPDATE_MS: 300,
@@ -24,6 +24,14 @@ const SPRITES = {
     lowerPipe: "./assets/img/fbs-06.png",
     floor: "./assets/img/fbs-04.png",
     gameOver: "./assets/img/fbs-32.png",
+    menuBoard: "./assets/img/fbs-12.png",
+    newLabel: "./assets/img/fbs-21.png",
+    shareButton: "./assets/img/fbs-16.png",
+    menuButton: "./assets/img/fbs-17.png",
+    okButton: "./assets/img/fbs-18.png",
+    pauseButton: "./assets/img/fbs-19.png",
+    silverMedal: "./assets/img/fbs-23.png",
+    goldMedal: "./assets/img/fbs-24.png",
     zero: "./assets/img/fbs-35.png",
     one: "./assets/img/fbs-36.png",
     two: "./assets/img/fbs-37.png",
@@ -40,11 +48,27 @@ const UPPER_PIPE_IMG = new Image();
 const LOWER_PIPE_IMG = new Image();
 const FLOOR_IMG = new Image();
 const GAME_OVER_IMG = new Image();
+const MENU_BOARD_IMG = new Image();
+const NEW_LABEL_IMG = new Image();
+const SHARE_BUTTON_IMG = new Image();
+const MENU_BUTTON_IMG = new Image();
+const OK_BUTTON_IMG = new Image();
+const PAUSE_BUTTON_IMG = new Image();
+const SILVER_MEDAL_IMG = new Image();
+const GOLD_MEDAL_IMG = new Image();
 
 UPPER_PIPE_IMG.src = SPRITES.upperPipe;
 LOWER_PIPE_IMG.src = SPRITES.lowerPipe;
 FLOOR_IMG.src = SPRITES.floor;
 GAME_OVER_IMG.src = SPRITES.gameOver;
+MENU_BOARD_IMG.src = SPRITES.menuBoard;
+NEW_LABEL_IMG.src = SPRITES.newLabel;
+SHARE_BUTTON_IMG.src = SPRITES.shareButton;
+MENU_BUTTON_IMG.src = SPRITES.menuButton;
+OK_BUTTON_IMG.src = SPRITES.okButton;
+PAUSE_BUTTON_IMG.src = SPRITES.pauseButton;
+SILVER_MEDAL_IMG.src = SPRITES.silverMedal;
+GOLD_MEDAL_IMG.src = SPRITES.goldMedal;
 
 /* STATE */
 let gameBoard;
@@ -53,8 +77,8 @@ let beanImg;
 
 let floor = {
     x: 0,
-    y: GAME.HEIGHT - 111,
-    height: 111,
+    y: GAME.HEIGHT - GAME.FLOOR_H,
+    height: 69,
     width: 339
 }
 
@@ -69,6 +93,10 @@ let pipeArr = [];
 let beanSpeed = 0;
 let gameOver = false;
 let score = 0;
+let bestScore = 0;
+let scoreNumberImg = new Image();
+let scoreNumberMenuImg = new Image();
+let bestScoreNumberImg = new Image();
 
 /* POST-LOAD ACTIONS */
 window.onload = function() {
@@ -89,22 +117,15 @@ window.onload = function() {
 
 /* MAIN GAME LOOP */
 function update() {
-    requestAnimationFrame(update);
     if (!gameOver) {
-        // Clear canvas
-        context.clearRect(0, 0, 
-                          GAME.WIDTH, GAME.HEIGHT);
+        requestAnimationFrame(update);
+        context.clearRect(0, 0, GAME.WIDTH, GAME.HEIGHT); // clear canvas
         drawPipe();
         drawFloor();
         drawBean();
-        drawScore();
+        drawNumbers(number=score, img=scoreNumberImg, x=10, y=10); // current score
     } else {
-        context.drawImage(GAME_OVER_IMG,
-                          (GAME.WIDTH - 220)/2,
-                          (GAME.HEIGHT/2 + GAME.FLOOR_H)/2,
-                          220,
-                          44
-        )
+        drawGameOver();
     }
 }
 
@@ -190,6 +211,7 @@ function restartGame() {
     pipeArr = [];
     bean.y = GAME.HEIGHT/2;
     beanSpeed = 0;
+    requestAnimationFrame(update);
 }
 
 
@@ -205,6 +227,9 @@ function drawPipe() {
         // End game if there's a collision or the bean falls below the board
         if (aabb(bean, auxPipe) || bean.y > GAME.HEIGHT - floor.height) {
             gameOver = true;
+            if (bestScore < score) {
+                bestScore = score;
+            }
         }
 
         if (auxPipe.x + auxPipe.width < bean.x &&
@@ -232,51 +257,48 @@ function drawBean() {
 }
 
 
-function drawScore() {
-    let scoreStr = score.toString();
-    let scoreX = 10;
-    let scoreY = 10;
-    for (let i=0; i < scoreStr.length; i++) {
-        let scoreLetterImg = new Image();
-        switch (scoreStr[i]) {
+function drawNumbers(number, img, x, y) {
+    let numberStr = number.toString();
+    for (let i=0; i < numberStr.length; i++) {
+        switch (numberStr[i]) {
             case "0":
-                scoreLetterImg.src = SPRITES.zero;
+                img.src = SPRITES.zero;
                 break;
             case "1":
-                scoreLetterImg.src = SPRITES.one;
+                img.src = SPRITES.one;
                 break;
             case "2":
-                scoreLetterImg.src = SPRITES.two;
+                img.src = SPRITES.two;
                 break;
             case "3":
-                scoreLetterImg.src = SPRITES.three;
+                img.src = SPRITES.three;
                 break;
             case "4":
-                scoreLetterImg.src = SPRITES.four;
+                img.src = SPRITES.four;
                 break;
             case "5":
-                scoreLetterImg.src = SPRITES.five;
+                img.src = SPRITES.five;
                 break;
             case "6":
-                scoreLetterImg.src = SPRITES.six;
+                img.src = SPRITES.six;
                 break;
             case "7":
-                scoreLetterImg.src = SPRITES.seven;
+                img.src = SPRITES.seven;
                 break;
             case "8":
-                scoreLetterImg.src = SPRITES.eight;
+                img.src = SPRITES.eight;
                 break;
             case "9":
-                scoreLetterImg.src = SPRITES.nine;
+                img.src = SPRITES.nine;
                 break;
         }
-        context.drawImage(scoreLetterImg,
-                                  scoreX,
-                                  scoreY,
-                                  GAME.SCORE_W,
-                                  GAME.SCORE_H
-                                );
-        scoreX += GAME.SCORE_W;
+        context.drawImage(img,
+                          x,
+                          y,
+                          GAME.SCORE_W,
+                          GAME.SCORE_H
+                          );
+        x += GAME.SCORE_W;
     }
 }
 
@@ -299,4 +321,75 @@ function drawFloor() {
                       floor.width,
                       floor.height
     )
+}
+
+
+function drawGameOver() {
+    // Game Over
+    context.drawImage(GAME_OVER_IMG,
+                     (GAME.WIDTH - 220)/2,
+                     (GAME.HEIGHT/2 + GAME.FLOOR_H/2)/3,
+                     220,
+                     44
+    )
+    
+    // Menu Board
+    context.drawImage(MENU_BOARD_IMG,
+                     (GAME.WIDTH - 252)/2,
+                     (GAME.HEIGHT/2 + GAME.FLOOR_H)/2,
+                     252,
+                     142
+    )
+
+    // Medal
+    if (score > 10 && score < 30) {
+        context.drawImage(SILVER_MEDAL_IMG,
+                         GAME.WIDTH/4 - 5,
+                         GAME.HEIGHT/3 + 37,
+                         45,
+                         45) 
+    } else if (score >= 30) {
+        context.drawImage(GOLD_MEDAL_IMG,
+                         GAME.WIDTH/4 - 5,
+                         GAME.HEIGHT/3 + 37,
+                         45,
+                         45)
+    }   
+
+    // Share Button
+    context.drawImage(SHARE_BUTTON_IMG,
+                      GAME.WIDTH/9,
+                      GAME.HEIGHT/2 + 20,                   
+                      70,
+                      30
+    )
+    
+    // Menu Button
+    context.drawImage(MENU_BUTTON_IMG,
+                      GAME.WIDTH/9 + 80,
+                      GAME.HEIGHT/2 + 20,                   
+                      70,
+                      30
+    )
+    
+    // Ok Button
+    context.drawImage(OK_BUTTON_IMG,
+                      GAME.WIDTH/9 + 160,
+                      GAME.HEIGHT/2 + 20,                   
+                      70,
+                      30
+    )
+
+    // New Label
+    context.drawImage(NEW_LABEL_IMG,
+                      GAME.WIDTH/9 + 10,
+                      GAME.HEIGHT/4 + 30,                   
+                      33,
+                      15
+    )
+
+    drawNumbers(number=score, img=scoreNumberMenuImg, 
+                x=GAME.WIDTH/5 + 155, y=215);
+    drawNumbers(number=bestScore, img=bestScoreNumberImg, 
+                x=GAME.WIDTH/5 + 155, y=255);
 }
