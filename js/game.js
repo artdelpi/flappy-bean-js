@@ -1,6 +1,6 @@
 /* CONSTANTS */
 const GAME_BOARD = {
-    HEIGHT: 515,
+    HEIGHT: 616,
     WIDTH: 290
 }
 const PIPE_SPEED = -3; // 2px per frame update
@@ -10,15 +10,27 @@ const UPPER_PIPE_IMG = new Image();
 UPPER_PIPE_IMG.src = "./assets/img/fbs-07.png";
 
 const LOWER_PIPE_IMG = new Image();
-LOWER_PIPE_IMG.src = "./assets/img/fbs-08.png";
+LOWER_PIPE_IMG.src = "./assets/img/fbs-06.png";
+
+const FLOOR_IMG = new Image();
+FLOOR_IMG.src = "./assets/img/fbs-04.png";
 
 const PIPE_HEIGHT = 325;
 const PIPE_WIDTH = 49;
+const PIPE_DISTANCE = 100;
 
 /* STATE */
 let gameBoard;
 let context;
 let beanImg;
+
+let floor = {
+    x: 0,
+    y: GAME_BOARD.HEIGHT - 111,
+    height: 111,
+    width: 339
+}
+
 let bean = {
     x: 35, // immutable
     y: GAME_BOARD.HEIGHT / 2, // middle of the y-axis
@@ -29,6 +41,7 @@ let bean = {
 let pipeArr = [];
 let beanSpeed = 0;
 let gameOver = false;
+let score = 0;
 
 /* POST-LOAD ACTIONS */
 window.onload = function() {
@@ -36,8 +49,9 @@ window.onload = function() {
     gameBoard.width = GAME_BOARD.WIDTH;
     gameBoard.height = GAME_BOARD.HEIGHT;
     context = gameBoard.getContext("2d");
+
     document.addEventListener("keydown", moveBean);
-    
+
     requestAnimationFrame(update);
     setInterval(spawnPipe, 1000); // +2 pipes every second
 
@@ -48,37 +62,15 @@ window.onload = function() {
 
 /* MAIN GAME LOOP */
 function update() {
+    requestAnimationFrame(update);
     if (!gameOver) {
-        requestAnimationFrame(update);
+        // Clear canvas
         context.clearRect(0, 0, 
                           GAME_BOARD.WIDTH, GAME_BOARD.HEIGHT);
-    
-        for (let i=0; i < pipeArr.length; i++) {
-            let auxPipe = pipeArr[i];
-            context.drawImage(auxPipe.img, 
-                              auxPipe.x, 
-                              auxPipe.y, 
-                              auxPipe.width, 
-                              auxPipe.height);
-            auxPipe.x += PIPE_SPEED;
-            
-            // End game if there's a collision with a pipe or the bean falls below the board
-            if (aabb(bean, auxPipe) || bean.y > GAME_BOARD.HEIGHT) {
-                gameOver = true;
-            }
-        }
-        
-        beanSpeed += GRAVITY;
-        bean.y += beanSpeed;
-        if (bean.y < 0) {
-            bean.y = 0;
-        }
-        context.drawImage(beanImg,
-                          bean.x,
-                          bean.y,
-                          bean.width,
-                          bean.height
-        );
+        drawPipe();
+        drawFloor();
+        drawBean();
+        drawScore();
     }
 }
 
@@ -94,30 +86,35 @@ function aabb(a, b) {
 
 
 function moveBean(e) {
-    if (e.code == "Space") {
-        beanSpeed = -5; // resets speed to go 5px higher
+    if (e.code == "Space" || e.code == "ArrowUp") {
+        if (gameOver) {
+            restartGame();
+        } else {
+            beanSpeed = -5; // resets speed to go 5px higher
+        }
     }
 }
 
 
 function spawnPipe() {
     let randomPipeY = -PIPE_HEIGHT + PIPE_HEIGHT/3 + Math.random()*PIPE_HEIGHT/2;
-    let defaultPipeDistance = 100;
 
     let upperPipe = {
         img: UPPER_PIPE_IMG,
         x: GAME_BOARD.WIDTH, // @ the far-right of the canvas
         y: randomPipeY,
         height: PIPE_HEIGHT,
-        width: PIPE_WIDTH
+        width: PIPE_WIDTH,
+        passed: false
     }
 
     let lowerPipe = {
         img: LOWER_PIPE_IMG,
         x: GAME_BOARD.WIDTH,
-        y: PIPE_HEIGHT + randomPipeY + defaultPipeDistance,
+        y: PIPE_HEIGHT + randomPipeY + PIPE_DISTANCE,
         height: PIPE_HEIGHT,
-        width: PIPE_WIDTH
+        width: PIPE_WIDTH,
+        passed: false
     }
 
     pipeArr.push(upperPipe);
@@ -150,4 +147,80 @@ function animateBean() {
                               bean.height);
         }
     }
+}
+
+
+function restartGame() {
+    gameOver = false;
+    score = 0;
+    pipeArr = [];
+    bean.y = GAME_BOARD.HEIGHT/2;
+    beanSpeed = 0;
+}
+
+
+function drawPipe() {
+    for (let i=0; i < pipeArr.length; i++) {
+        let auxPipe = pipeArr[i];
+        context.drawImage(auxPipe.img, 
+                          auxPipe.x, 
+                          auxPipe.y, 
+                          auxPipe.width, 
+                          auxPipe.height);
+        auxPipe.x += PIPE_SPEED;
+        // End game if there's a collision or the bean falls below the board
+        if (aabb(bean, auxPipe) || bean.y > GAME_BOARD.HEIGHT - floor.height) {
+            gameOver = true;
+        }
+
+        if (auxPipe.x + auxPipe.width < bean.x &&
+            auxPipe.passed == false
+        ) {
+            score += 0.5; // +0.5 per pipe; 2 at once = 1 point
+            auxPipe.passed = true;
+        }
+    } 
+}
+
+
+function drawBean() {
+    beanSpeed += GRAVITY;
+    bean.y += beanSpeed;
+    if (bean.y < 0) {
+        bean.y = 0;
+    }
+    context.drawImage(beanImg,
+                      bean.x,
+                      bean.y,
+                      bean.width,
+                      bean.height
+    );
+}
+
+
+function drawScore() {
+    context.font = "30px Arial";
+    context.fillStyle = "white";
+    context.fillText(score, 10, 35);
+}
+
+
+function drawFloor() {
+    if (floor.x < -floor.width) {
+        floor.x = 0; // reset floor drawing
+    }
+    floor.x += PIPE_SPEED
+    context.drawImage(FLOOR_IMG,
+                      floor.x,
+                      floor.y,
+                      floor.width,
+                      floor.height
+    )
+
+    context.drawImage(FLOOR_IMG,
+                      floor.x + floor.width -2, // slight adjustment
+                      floor.y,
+                      floor.width,
+                      floor.height
+    )
 }
