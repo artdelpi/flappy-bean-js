@@ -4,7 +4,7 @@ const GAME_BOARD = {
     WIDTH: 290
 }
 const PIPE_SPEED = -2; // 2px per frame update
-const GRAVITY = 0.5; // 0.5px per frame update
+const GRAVITY = 0.3; // 0.5px per frame update
 
 const UPPER_PIPE_IMG = new Image();
 UPPER_PIPE_IMG.src = "./assets/img/fbs-07.png";
@@ -26,7 +26,7 @@ let bean = {
     width: 35
 }
 let pipeArr = [];
-let beanSpeed;
+let beanSpeed = 0;
 
 /* POST-LOAD ACTIONS */
 window.onload = function() {
@@ -45,8 +45,10 @@ window.onload = function() {
                           bean.height);
     }
 
+    document.addEventListener("keydown", moveBean);
+    
     requestAnimationFrame(update);
-    setInterval(spawnPipe, 1500); // +1 pipe every 2 seconds
+    setInterval(spawnPipe, 1500); // +2 pipes every 1.5 seconds
 }
 
 /* MAIN GAME LOOP */
@@ -65,6 +67,8 @@ function update() {
         auxPipe.x += PIPE_SPEED;
     }
 
+    beanSpeed += GRAVITY;
+    bean.y += beanSpeed;
     context.drawImage(beanImg,
                       bean.x,
                       bean.y,
@@ -78,8 +82,10 @@ function aabb(a, b) {
     return
 }
 
-function moveBean() {
-    return
+function moveBean(e) {
+    if (e.code == "Space") {
+        beanSpeed = -5; // resets speed to go 5px higher
+    }
 }
 
 function spawnPipe() {
@@ -96,7 +102,7 @@ function spawnPipe() {
     let lowerPipe = {
         img: LOWER_PIPE_IMG,
         x: GAME_BOARD.WIDTH,
-        y: PIPE_HEIGHT + randomPipeY + 100,
+        y: PIPE_HEIGHT + randomPipeY + 90,
         height: PIPE_HEIGHT,
         width: PIPE_WIDTH
     }
