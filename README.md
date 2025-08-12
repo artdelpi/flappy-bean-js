@@ -18,6 +18,14 @@ Flappy Beans JS
 
 ---
 
+## Gameplay
+
+<p align="center">
+  <img src="./assets/gif/demo.gif" width="250" alt="Flappy Beans JS Gameplay">
+</p>
+
+---
+
 ## Overview
 A **Flappy Bird–like** browser game implemented using **JavaScript**, **HTML** and **CSS**, featuring custom "Flappy Beans" sprites and sound effects.
 
