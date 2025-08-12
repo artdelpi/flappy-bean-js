@@ -1,4 +1,4 @@
-/* CONSTANTS */
+/* =========== CONSTANTS =========== */
 const GAME = {
     WIDTH: 290,           // game board width
     HEIGHT: 554,          // game board height
@@ -53,84 +53,105 @@ const SPRITES = {
     nine: "./assets/img/fbs-44.png"
 }
 
-const UPPER_PIPE_IMG = new Image();
-const LOWER_PIPE_IMG = new Image();
+/* ========== ASSETS: IMAGES ========== */
+// Pipes
+const UPPER_PIPE_IMG   = new Image();
+const LOWER_PIPE_IMG   = new Image();
+
+// Floor 
 const FLOOR_IMG = new Image();
-const GAME_OVER_IMG = new Image();
-const MENU_BOARD_IMG = new Image();
-const NEW_LABEL_IMG = new Image();
+
+
+// Buttons
 const SHARE_BUTTON_IMG = new Image();
 const MENU_BUTTON_IMG = new Image();
 const OK_BUTTON_IMG = new Image();
 const PAUSE_BUTTON_IMG = new Image();
+
+// Medals 
 const SILVER_MEDAL_IMG = new Image();
 const GOLD_MEDAL_IMG = new Image();
-const hitAudio = new Audio("./assets/audio/hit.ogg");
-const wingAudio = new Audio("./assets/audio/wing.ogg");
-wingAudio.preload = 'auto'
 
+// Start screen / labels / icons 
+const GAME_OVER_IMG = new Image();
+const GAME_TITLE_IMG = new Image();
+const GET_READY_LABEL_IMG = new Image();
+const PLAY_BUTTON_IMG = new Image();
+const LEADERBOARD_IMG = new Image();
+const TAP_LEFT_IMG = new Image();
+const TAP_RIGHT_IMG = new Image();
+const ARROW_UP_IMG = new Image();
+const HAND_IMG = new Image();
+const NEW_LABEL_IMG = new Image();
+const MENU_BOARD_IMG = new Image();
+
+// Paths
 UPPER_PIPE_IMG.src = SPRITES.upperPipe;
 LOWER_PIPE_IMG.src = SPRITES.lowerPipe;
+
 FLOOR_IMG.src = SPRITES.floor;
 GAME_OVER_IMG.src = SPRITES.gameOver;
 MENU_BOARD_IMG.src = SPRITES.menuBoard;
-NEW_LABEL_IMG.src = SPRITES.newLabel;
+
 SHARE_BUTTON_IMG.src = SPRITES.shareButton;
 MENU_BUTTON_IMG.src = SPRITES.menuButton;
 OK_BUTTON_IMG.src = SPRITES.okButton;
 PAUSE_BUTTON_IMG.src = SPRITES.pauseButton;
+
 SILVER_MEDAL_IMG.src = SPRITES.silverMedal;
 GOLD_MEDAL_IMG.src = SPRITES.goldMedal;
 
-const GET_READY_LABEL_IMG = new Image(); 
-const PLAY_BUTTON_IMG = new Image(); 
-const LEADERBOARD_IMG = new Image(); 
-const GAME_TITLE_IMG = new Image(); 
-const TAP_RIGHT_IMG = new Image(); 
-const TAP_LEFT_IMG = new Image(); 
-const ARROW_UP_IMG = new Image(); 
-const HAND_IMG = new Image(); 
-
-GET_READY_LABEL_IMG.src = SPRITES.getReadyLabel;
-PLAY_BUTTON_IMG.src = SPRITES.playButton;
-LEADERBOARD_IMG.src = SPRITES.leaderboard;
 GAME_TITLE_IMG.src = SPRITES.gameTitle;
-TAP_RIGHT_IMG.src = SPRITES.tapRight;
+GET_READY_LABEL_IMG.src = SPRITES.getReadyLabel;
+PLAY_BUTTON_IMG.src = SPRITES.playButton;   
+LEADERBOARD_IMG.src = SPRITES.leaderboard;
 TAP_LEFT_IMG.src = SPRITES.tapLeft;
+TAP_RIGHT_IMG.src = SPRITES.tapRight;
 ARROW_UP_IMG.src = SPRITES.arrowUp;
 HAND_IMG.src = SPRITES.hand;
+NEW_LABEL_IMG.src = SPRITES.newLabel;
 
+/* ========== ASSETS: AUDIO ========== */
+const hitAudio  = new Audio("./assets/audio/hit.ogg");
+const wingAudio = new Audio("./assets/audio/wing.ogg");
+wingAudio.preload = "auto";
 
-/* STATE */
-let gameBoard;
-let context;
+/* ========== STATE ========== */
+let gameBoard, context;
 
+// Floor state
 let floor = {
-    x: 0,
-    y: GAME.HEIGHT - GAME.FLOOR_H,
-    height: 69,
-    width: 339
-}
+  x: 0,
+  y: GAME.HEIGHT - GAME.FLOOR_H,
+  width: 339,
+  height: 69
+};
 
+// Player
 let bean = {
-    x: 35, // immutable
-    y: GAME.HEIGHT / 2, // middle of the y-axis
-    width: 35,
-    height: 35,
-    img_state: 1 // bean .png image (1, 2 or 3)
-}
+  x: 35,
+  y: GAME.HEIGHT / 2,
+  width: 35,
+  height: 35,
+  img_state: 1
+};
 let beanImg = new Image();
 beanImg.src = SPRITES.bean1;
+
+// Gameplay 
 let pipeArr = [];
 let beanSpeed = 0;
 let gameOver = true;
 let score = 0;
 let bestScore = 0;
-let scoreNumberImg = new Image();
-let scoreNumberMenuImg = new Image();
-let bestScoreNumberImg = new Image();
 
-/* POST-LOAD ACTIONS */
+// UI numbers 
+let scoreNumberImg      = new Image();
+let scoreNumberMenuImg  = new Image();
+let bestScoreNumberImg  = new Image();
+
+
+/* =========== POST-LOAD ACTIONS =========== */
 window.onload = function() {
     gameBoard = document.getElementById("gameBoard");
     gameBoard.width = GAME.WIDTH;
@@ -139,11 +160,12 @@ window.onload = function() {
 
     document.addEventListener("keydown", handleInput);
     drawStartScreen();
+    // Start screen render loop: exits only when the player starts the game
     requestAnimationFrame(start);
 }
 
 
-/* MAIN GAME LOOP */
+/* =========== MAIN GAME LOOP =========== */
 function update() {
     if (!gameOver) {
         requestAnimationFrame(update);
@@ -158,7 +180,7 @@ function update() {
 }
 
 
-/* UTILS */
+/* =========== UTILS =========== */
 function aabb(a, b) {
     return (a.y < b.y + b.height &&
         a.y + a.height > b.y &&
@@ -170,8 +192,8 @@ function aabb(a, b) {
 
 function start() {
     if (!gameOver){
-        requestAnimationFrame(update);
         setInterval(spawnPipe, GAME.PIPE_SPAWN_MS); // +2 pipes every second
+        setInterval(despawnPipe, GAME.PIPE_SPAWN_MS); // removes pipes that got past the canvas
         setInterval(animateBean, GAME.BEAN_UPDATE_MS); // animates bean image
     } else {
         requestAnimationFrame(start)
@@ -179,17 +201,13 @@ function start() {
 }
 
 
-function drawStartScreen() {
-    drawFloor();
-    context.drawImage(beanImg, GAME.WIDTH/2-(bean.width/2),GAME.HEIGHT/2-50,35,35);
-    context.drawImage(GAME_TITLE_IMG, (GAME.WIDTH-250)/2,50,250,40);
-    context.drawImage(GET_READY_LABEL_IMG, (GAME.WIDTH-150)/2,430,150,30);
-    context.drawImage(PLAY_BUTTON_IMG,0,GAME.HEIGHT-80,160,80);
-    context.drawImage(LEADERBOARD_IMG,GAME.WIDTH-160,GAME.HEIGHT-80,170,80);
-    context.drawImage(HAND_IMG,GAME.WIDTH-157,375,23,38);
-    context.drawImage(ARROW_UP_IMG,GAME.WIDTH-154,350,15,15);
-    context.drawImage(TAP_LEFT_IMG,GAME.WIDTH-210,390,42,19);
-    context.drawImage(TAP_RIGHT_IMG,GAME.WIDTH-120,390,42,19);
+function restartGame() {
+    gameOver = false;
+    score = 0;
+    pipeArr = [];
+    bean.y = GAME.HEIGHT/2;
+    beanSpeed = 0;
+    requestAnimationFrame(update);
 }
 
 
@@ -199,9 +217,7 @@ function handleInput(e) {
             restartGame();
         } else {
             beanSpeed = -5; // resets speed to go 5px higher
-            wingAudio.onload = function() {
-                wingAudio.play();
-            }
+            wingAudio.play();
         }
     }
 }
@@ -233,6 +249,16 @@ function spawnPipe() {
 }
 
 
+function despawnPipe() {
+    // Remove pipes that have moved completely off-screen
+    for (let i=0; i<pipeArr.length;i++) {
+        if (pipeArr[i].x == -PIPE_WIDTH) {
+            pipeArr.slice(i, 1);
+        }
+    }
+}
+
+
 function animateBean() {
     if (!gameOver) {
         switch (bean.img_state) {
@@ -261,56 +287,17 @@ function animateBean() {
 }
 
 
-function restartGame() {
-    gameOver = false;
-    score = 0;
-    pipeArr = [];
-    bean.y = GAME.HEIGHT/2;
-    beanSpeed = 0;
-    requestAnimationFrame(update);
-}
-
-
-function drawPipe() {
-    for (let i=0; i < pipeArr.length; i++) {
-        let auxPipe = pipeArr[i];
-        context.drawImage(auxPipe.img, 
-                          auxPipe.x, 
-                          auxPipe.y, 
-                          auxPipe.width, 
-                          auxPipe.height);
-        auxPipe.x += GAME.PIPE_SPEED;
-        // End game if there's a collision or the bean falls below the board
-        if (aabb(bean, auxPipe) || bean.y > GAME.HEIGHT - floor.height) {
-            gameOver = true;
-            hitAudio.play()
-            if (bestScore < score) {
-                bestScore = score;
-            }
-        }
-
-        if (auxPipe.x + auxPipe.width < bean.x &&
-            auxPipe.passed == false
-        ) {
-            score += 0.5; // +0.5 per pipe; 2 at once = 1 point
-            auxPipe.passed = true;
-        }
-    } 
-}
-
-
-function drawBean() {
-    beanSpeed += GAME.GRAVITY;
-    bean.y += beanSpeed;
-    if (bean.y < 0) {
-        bean.y = 0;
-    }
-    context.drawImage(beanImg,
-                      bean.x,
-                      bean.y,
-                      bean.width,
-                      bean.height
-    );
+function drawStartScreen() {
+    drawFloor();
+    context.drawImage(beanImg, GAME.WIDTH/2-(bean.width/2),GAME.HEIGHT/2-50,35,35);
+    context.drawImage(GAME_TITLE_IMG, (GAME.WIDTH-250)/2,50,250,40);
+    context.drawImage(GET_READY_LABEL_IMG, (GAME.WIDTH-150)/2,430,150,30);
+    context.drawImage(PLAY_BUTTON_IMG,0,GAME.HEIGHT-80,160,80);
+    context.drawImage(LEADERBOARD_IMG,GAME.WIDTH-160,GAME.HEIGHT-80,170,80);
+    context.drawImage(HAND_IMG,GAME.WIDTH-157,375,23,38);
+    context.drawImage(ARROW_UP_IMG,GAME.WIDTH-154,350,15,15);
+    context.drawImage(TAP_LEFT_IMG,GAME.WIDTH-210,390,42,19);
+    context.drawImage(TAP_RIGHT_IMG,GAME.WIDTH-120,390,42,19);
 }
 
 
@@ -349,14 +336,53 @@ function drawNumbers(number, img, x, y) {
                 img.src = SPRITES.nine;
                 break;
         }
-        context.drawImage(img,
-                          x,
-                          y,
+        context.drawImage(img,x,y,
                           GAME.SCORE_W,
                           GAME.SCORE_H
                           );
         x += GAME.SCORE_W;
     }
+}
+
+
+function drawPipe() {
+    for (let i=0; i < pipeArr.length; i++) {
+        let auxPipe = pipeArr[i];
+        context.drawImage(auxPipe.img, 
+                          auxPipe.x, 
+                          auxPipe.y, 
+                          auxPipe.width, 
+                          auxPipe.height);
+        auxPipe.x += GAME.PIPE_SPEED;
+        // End game if there's a collision or the bean falls below the board
+        if (aabb(bean, auxPipe) || bean.y > GAME.HEIGHT - floor.height) {
+            gameOver = true;
+            hitAudio.play()
+            if (bestScore < score) {
+                bestScore = score;
+            }
+        }
+
+        if (auxPipe.x + auxPipe.width < bean.x &&
+            auxPipe.passed == false
+        ) {
+            score += 0.5; // +0.5 per pipe; 2 at once = 1 point
+            auxPipe.passed = true;
+        }
+    } 
+}
+
+
+function drawBean() {
+    beanSpeed += GAME.GRAVITY;
+    bean.y += beanSpeed;
+    if (bean.y < 0) {
+        bean.y = 0;
+    }
+    context.drawImage(beanImg,
+                      bean.x,bean.y,
+                      bean.width,bean.height
+    );
 }
 
 
@@ -382,71 +408,52 @@ function drawFloor() {
 
 
 function drawGameOver() {
-    // Game Over
+    // "Game Over"
     context.drawImage(GAME_OVER_IMG,
-                     (GAME.WIDTH - 220)/2,
-                     (GAME.HEIGHT/2 + GAME.FLOOR_H/2)/3,
-                     220,
-                     44
-    )
+                     (GAME.WIDTH - 220)/2,(GAME.HEIGHT/2 + GAME.FLOOR_H/2)/3,
+                     220,44)
     
-    // Menu Board
+    // Menu board
     context.drawImage(MENU_BOARD_IMG,
-                     (GAME.WIDTH - 252)/2,
-                     (GAME.HEIGHT/2 + GAME.FLOOR_H)/2,
-                     252,
-                     142
-    )
+                     (GAME.WIDTH - 252)/2,(GAME.HEIGHT/2 + GAME.FLOOR_H)/2,
+                     252,142)
 
-    // Medal
+    // Medal (silver or gold)
     if (score > 10 && score < 30) {
         context.drawImage(SILVER_MEDAL_IMG,
-                         GAME.WIDTH/4 - 5,
-                         GAME.HEIGHT/3 + 37,
-                         45,
-                         45) 
+                          GAME.WIDTH/4 - 5,GAME.HEIGHT/3 + 37,
+                          45,45) 
     } else if (score >= 30) {
         context.drawImage(GOLD_MEDAL_IMG,
-                         GAME.WIDTH/4 - 5,
-                         GAME.HEIGHT/3 + 37,
-                         45,
-                         45)
+                          GAME.WIDTH/4 - 5,GAME.HEIGHT/3 + 37,
+                          45,45)
     }   
 
-    // Share Button
+    // "Share" button
     context.drawImage(SHARE_BUTTON_IMG,
-                      GAME.WIDTH/9,
-                      GAME.HEIGHT/2 + 20,                   
-                      70,
-                      30
-    )
+                      GAME.WIDTH/9,GAME.HEIGHT/2 + 20,
+                      70,30)
     
-    // Menu Button
+    // "Menu" button
     context.drawImage(MENU_BUTTON_IMG,
-                      GAME.WIDTH/9 + 80,
-                      GAME.HEIGHT/2 + 20,                   
-                      70,
-                      30
-    )
+                      GAME.WIDTH/9 + 80,GAME.HEIGHT/2 + 20,
+                      70,30)
     
-    // Ok Button
+    // "Ok" button
     context.drawImage(OK_BUTTON_IMG,
-                      GAME.WIDTH/9 + 160,
-                      GAME.HEIGHT/2 + 20,                   
-                      70,
-                      30
-    )
+                      GAME.WIDTH/9 + 160,GAME.HEIGHT/2 + 20,
+                      70,30)
 
-    // New Label
+    // New label
     context.drawImage(NEW_LABEL_IMG,
-                      GAME.WIDTH/9 + 10,
-                      GAME.HEIGHT/4 + 30,                   
-                      33,
-                      15
-    )
-
+                      GAME.WIDTH/9 + 10,GAME.HEIGHT/4 + 30,
+                      33,15)
+    
+    // Last score
     drawNumbers(number=score, img=scoreNumberMenuImg, 
                 x=GAME.WIDTH/5 + 155, y=215);
+
+    // Best score
     drawNumbers(number=bestScore, img=bestScoreNumberImg, 
                 x=GAME.WIDTH/5 + 155, y=255);
 }
