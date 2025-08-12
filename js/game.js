@@ -32,6 +32,15 @@ const SPRITES = {
     pauseButton: "./assets/img/fbs-19.png",
     silverMedal: "./assets/img/fbs-23.png",
     goldMedal: "./assets/img/fbs-24.png",
+    gameTitle: "./assets/img/fbs-34.png",
+    startButton: "./assets/img/fbs-13.png",
+    getReadyLabel: "./assets/img/fbs-31.png",
+    leaderboard: "./assets/img/fbs-14.png",
+    tapRight: "./assets/img/fbs-29.png",
+    tapLeft: "./assets/img/fbs-30.png",
+    arrowUp: "./assets/img/fbs-27.png",
+    hand: "./assets/img/fbs-28.png",
+    playButton: "./assets/img/fbs-13.png",
     zero: "./assets/img/fbs-35.png",
     one: "./assets/img/fbs-36.png",
     two: "./assets/img/fbs-37.png",
@@ -56,6 +65,9 @@ const OK_BUTTON_IMG = new Image();
 const PAUSE_BUTTON_IMG = new Image();
 const SILVER_MEDAL_IMG = new Image();
 const GOLD_MEDAL_IMG = new Image();
+const hitAudio = new Audio("./assets/audio/hit.ogg");
+const wingAudio = new Audio("./assets/audio/wing.ogg");
+wingAudio.preload = 'auto'
 
 UPPER_PIPE_IMG.src = SPRITES.upperPipe;
 LOWER_PIPE_IMG.src = SPRITES.lowerPipe;
@@ -70,10 +82,28 @@ PAUSE_BUTTON_IMG.src = SPRITES.pauseButton;
 SILVER_MEDAL_IMG.src = SPRITES.silverMedal;
 GOLD_MEDAL_IMG.src = SPRITES.goldMedal;
 
+const GET_READY_LABEL_IMG = new Image(); 
+const PLAY_BUTTON_IMG = new Image(); 
+const LEADERBOARD_IMG = new Image(); 
+const GAME_TITLE_IMG = new Image(); 
+const TAP_RIGHT_IMG = new Image(); 
+const TAP_LEFT_IMG = new Image(); 
+const ARROW_UP_IMG = new Image(); 
+const HAND_IMG = new Image(); 
+
+GET_READY_LABEL_IMG.src = SPRITES.getReadyLabel;
+PLAY_BUTTON_IMG.src = SPRITES.playButton;
+LEADERBOARD_IMG.src = SPRITES.leaderboard;
+GAME_TITLE_IMG.src = SPRITES.gameTitle;
+TAP_RIGHT_IMG.src = SPRITES.tapRight;
+TAP_LEFT_IMG.src = SPRITES.tapLeft;
+ARROW_UP_IMG.src = SPRITES.arrowUp;
+HAND_IMG.src = SPRITES.hand;
+
+
 /* STATE */
 let gameBoard;
 let context;
-let beanImg;
 
 let floor = {
     x: 0,
@@ -89,9 +119,11 @@ let bean = {
     height: 35,
     img_state: 1 // bean .png image (1, 2 or 3)
 }
+let beanImg = new Image();
+beanImg.src = SPRITES.bean1;
 let pipeArr = [];
 let beanSpeed = 0;
-let gameOver = false;
+let gameOver = true;
 let score = 0;
 let bestScore = 0;
 let scoreNumberImg = new Image();
@@ -105,13 +137,9 @@ window.onload = function() {
     gameBoard.height = GAME.HEIGHT;
     context = gameBoard.getContext("2d");
 
-    document.addEventListener("keydown", moveBean);
-
-    requestAnimationFrame(update);
-    setInterval(spawnPipe, GAME.PIPE_SPAWN_MS); // +2 pipes every second
-
-    beanImg = new Image();
-    setInterval(animateBean, GAME.BEAN_UPDATE_MS); // animates bean image
+    document.addEventListener("keydown", handleInput);
+    drawStartScreen();
+    requestAnimationFrame(start);
 }
 
 
@@ -140,12 +168,40 @@ function aabb(a, b) {
 }
 
 
-function moveBean(e) {
+function start() {
+    if (!gameOver){
+        requestAnimationFrame(update);
+        setInterval(spawnPipe, GAME.PIPE_SPAWN_MS); // +2 pipes every second
+        setInterval(animateBean, GAME.BEAN_UPDATE_MS); // animates bean image
+    } else {
+        requestAnimationFrame(start)
+    }
+}
+
+
+function drawStartScreen() {
+    drawFloor();
+    context.drawImage(beanImg, GAME.WIDTH/2-(bean.width/2),GAME.HEIGHT/2-50,35,35);
+    context.drawImage(GAME_TITLE_IMG, (GAME.WIDTH-250)/2,50,250,40);
+    context.drawImage(GET_READY_LABEL_IMG, (GAME.WIDTH-150)/2,430,150,30);
+    context.drawImage(PLAY_BUTTON_IMG,0,GAME.HEIGHT-80,160,80);
+    context.drawImage(LEADERBOARD_IMG,GAME.WIDTH-160,GAME.HEIGHT-80,170,80);
+    context.drawImage(HAND_IMG,GAME.WIDTH-157,375,23,38);
+    context.drawImage(ARROW_UP_IMG,GAME.WIDTH-154,350,15,15);
+    context.drawImage(TAP_LEFT_IMG,GAME.WIDTH-210,390,42,19);
+    context.drawImage(TAP_RIGHT_IMG,GAME.WIDTH-120,390,42,19);
+}
+
+
+function handleInput(e) {
     if (e.code == "Space" || e.code == "ArrowUp") {
         if (gameOver) {
             restartGame();
         } else {
             beanSpeed = -5; // resets speed to go 5px higher
+            wingAudio.onload = function() {
+                wingAudio.play();
+            }
         }
     }
 }
@@ -227,6 +283,7 @@ function drawPipe() {
         // End game if there's a collision or the bean falls below the board
         if (aabb(bean, auxPipe) || bean.y > GAME.HEIGHT - floor.height) {
             gameOver = true;
+            hitAudio.play()
             if (bestScore < score) {
                 bestScore = score;
             }
