@@ -1,13 +1,9 @@
-<p align="center">
-  <img src="https://twemoji.maxcdn.com/v/latest/svg/1f954.svg" width="72" alt="Bean Emoji">
-</p>
-
 <h1 align="center"> 
 Flappy Beans JS
 </h1>
 
 <p align="center">
-  <em>Flappy Bird, but with beans.</em>
+  <em>Flappy Bird, but with beans</em>
 </p>
 
 <p align="center">
