@@ -12,9 +12,10 @@ Flappy Beans JS
 
 <p align="center">
   <a href="">
-    <img src="https://img.shields.io/badge/status-in%20development-yellow?style=for-the-badge&logo=github" alt="Status">
+    <img src="https://img.shields.io/badge/status-completed-brightgreen?style=for-the-badge&logo=github" alt="Status">
   </a>
 </p>
+
 
 ---
 
